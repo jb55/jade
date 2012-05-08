@@ -1,4 +1,3 @@
-
 // CommonJS require()
 
 function require(p){
@@ -103,6 +102,7 @@ var Compiler = module.exports = function Compiler(node, options) {
   if (options.doctype) this.setDoctype(options.doctype);
 
   this.pp = options.prettyprint || false;
+  this.tab = options.tab || '  '; // for people who use 4 or more whitespaces as a tab length
   this.indentDepth = 0;
 };
 
@@ -243,7 +243,7 @@ Compiler.prototype = {
     }
 
     if(this.pp && inlineTags.indexOf(name) == -1) 
-      this.buffer('\\n' + new Array(this.indentDepth).join('  '));
+      this.buffer('\\n' + new Array(this.indentDepth).join(this.tab));
 
     if (~selfClosing.indexOf(name) && !this.xml) {
       this.buffer('<' + name);
@@ -264,7 +264,7 @@ Compiler.prototype = {
       if (tag.text) this.buffer(utils.text(tag.text.nodes[0].trimLeft()));
       this.escape = 'pre' == tag.name;
       this.visit(tag.block);
-      if (this.pp && inlineTags.indexOf(name) == -1 && tag.textOnly == 0) this.buffer('\\n' + new Array(this.indentDepth).join('  '));
+      if (this.pp && inlineTags.indexOf(name) == -1 && tag.textOnly == 0) this.buffer('\\n' + new Array(this.indentDepth).join(this.tab));
       this.buffer('</' + name + '>');
     }
     this.indentDepth--;
@@ -319,7 +319,7 @@ Compiler.prototype = {
   
   visitComment: function(comment){
     if (!comment.buffer) return;
-    if (this.pp) this.buffer('\\n' + new Array(this.indentDepth + 1).join('  '));
+    if (this.pp) this.buffer('\\n' + new Array(this.indentDepth + 1).join(this.tab));
     this.buffer('<!--' + utils.escape(comment.val) + '-->');
   },
   
@@ -778,7 +778,7 @@ function parse(str, options){
 
     // Debug compiler
     if (options.debug) {
-      console.log('\n\x1b[1mCompiled Function\x1b[0m:\n\n%s', js.replace(/^/gm, '  '));
+      console.log('\n\x1b[1mCompiled Function\x1b[0m:\n\n%s', js.replace(/^/gm, this.tab));
     }
 
     try {
